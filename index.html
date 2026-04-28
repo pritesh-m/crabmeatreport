@@ -11,17 +11,17 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
     }
 
     .container {
       background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
     }
 
     h2 {
@@ -32,15 +32,16 @@
     input, textarea {
       width: 100%;
       padding: 12px;
-      margin: 8px 0;
+      margin: 10px 0;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 14px;
+      box-sizing: border-box;
     }
 
     textarea {
-      resize: none;
       height: 100px;
+      resize: none;
     }
 
     button {
@@ -49,19 +50,49 @@
       background: #007BFF;
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 16px;
       cursor: pointer;
+      position: relative;
     }
 
-    button:hover {
-      background: #0056b3;
+    button:disabled {
+      background: #7aa7e0;
+      cursor: not-allowed;
+    }
+
+    /* Spinner */
+    .spinner {
+      display: none;
+      width: 18px;
+      height: 18px;
+      border: 3px solid #fff;
+      border-top: 3px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg) translate(-50%, -50%); }
+    }
+
+    /* Success message */
+    .success {
+      display: none;
+      text-align: center;
+      color: green;
+      margin-top: 15px;
+      font-weight: bold;
     }
 
     @media (max-width: 500px) {
       .container {
-        margin: 10px;
-        padding: 15px;
+        margin: 15px;
+        padding: 20px;
       }
     }
   </style>
@@ -76,18 +107,37 @@
     <input type="text" name="name" placeholder="Name" required>
     <input type="email" name="email" placeholder="Email" required>
     <textarea name="message" placeholder="Message"></textarea>
-    <button type="submit">Send</button>
+
+    <button type="submit" id="submitBtn">
+      <span id="btnText">Send</span>
+      <div class="spinner" id="spinner"></div>
+    </button>
   </form>
+
+  <div class="success" id="successMsg">
+    ✅ Submitted successfully!
+  </div>
 </div>
 
 <script>
-document.getElementById("myForm").addEventListener("submit", function(e) {
+const form = document.getElementById("myForm");
+const btn = document.getElementById("submitBtn");
+const spinner = document.getElementById("spinner");
+const btnText = document.getElementById("btnText");
+const successMsg = document.getElementById("successMsg");
+
+form.addEventListener("submit", function(e) {
   e.preventDefault();
 
+  btn.disabled = true;
+  spinner.style.display = "block";
+  btnText.style.visibility = "hidden";
+  successMsg.style.display = "none";
+
   const formData = {
-    name: this.name.value,
-    email: this.email.value,
-    message: this.message.value
+    name: form.name.value,
+    email: form.email.value,
+    message: form.message.value
   };
 
   fetch("https://script.google.com/macros/s/AKfycbykrp3v7aWou1xihbvHrEgE9LOO_FPQZS_GUlRCfsVux1ck4I2knz9hXIftHxy4LuWyvA/exec", {
@@ -95,11 +145,18 @@ document.getElementById("myForm").addEventListener("submit", function(e) {
     body: JSON.stringify(formData)
   })
   .then(res => res.json())
-  .then(data => {
-    alert("Submitted successfully!");
-    document.getElementById("myForm").reset();
+  .then(() => {
+    form.reset();
+    successMsg.style.display = "block";
   })
-  .catch(err => alert("Error!"));
+  .catch(() => {
+    alert("Something went wrong!");
+  })
+  .finally(() => {
+    btn.disabled = false;
+    spinner.style.display = "none";
+    btnText.style.visibility = "visible";
+  });
 });
 </script>
 
